@@ -6,6 +6,8 @@ import {
   Status,
 } from "https://deno.land/x/oak/mod.ts";
 
+import { bold, green } from "https://deno.land/std/fmt/colors.ts";
+import { red, blue } from "https://deno.land/std@0.51.0/fmt/colors.ts";
 const books = new Map<string, any>();
 books.set("1", {
   id: "1",
@@ -14,14 +16,15 @@ books.set("1", {
 });
 
 const router = new Router();
+
 router
   .get("/api", (context) => {
     context.response.body = "Hello API!";
   })
-  .get("/book", (context) => {
+  .get("/api/book", (context) => {
     context.response.body = Array.from(books.values());
   })
-  .get("/book/:id", (context) => {
+  .get("/api/book/:id", (context) => {
     if (context.params && context.params.id && books.has(context.params.id)) {
       context.response.body = books.get(context.params.id);
     } else {
@@ -33,14 +36,16 @@ const app = new Application();
 
 app.addEventListener("error", (evt) => {
   // Will log the thrown error to the console.
-  console.log(evt.error);
+  // console.log(evt.error);
+  LogFailure("@Error Listener", evt.error);
 });
 
 // Logger
 app.use(async (ctx, next) => {
   await next();
   const rt = ctx.response.headers.get("X-Response-Time");
-  console.log(`${ctx.request.method} ${ctx.request.url} - ${rt}`);
+  // console.log(`${ctx.request.method} ${ctx.request.url} - ${rt}`);
+  LogRoute(ctx.request.method, `${ctx.request.url} - ${rt}`);
 });
 // Response Time
 app.use(async (context, next) => {
@@ -55,6 +60,20 @@ app.use(router.allowedMethods());
 
 //static content
 // --allow-read is needeed for this to work
+// router.get("/", async (context) => {
+//   try {
+//     await send(context, context.request.url.pathname, {
+//       root: `${Deno.cwd()}/public/`,
+//       index: `index.html`,
+//     });
+//   } catch (error) {
+//     LogFailure("@static content", error);
+//     return notFound(context);
+//   }
+// });
+
+//static folder
+// --allow-read is needeed for this to work
 app.use(async (context) => {
   try {
     await send(context, context.request.url.pathname, {
@@ -62,7 +81,7 @@ app.use(async (context) => {
       index: `index.html`,
     });
   } catch (error) {
-    console.log(error);
+    LogFailure("@static content", error);
     return notFound(context);
   }
 });
@@ -75,5 +94,17 @@ function notFound(context: Context) {
 // A basic 404 page
 app.use(notFound);
 
-console.log(`Server Listening on http://localhost:5600/`);
-await app.listen({ port: 5600 });
+const PORT = Deno.env.get("PORT") || "5600";
+
+function LogSuccess(from: string, message: string) {
+  console.log(green(bold(from)), "[", bold(message), "]");
+}
+function LogFailure(from: string, message: string) {
+  console.log(red(bold(from)), "", message, "");
+}
+function LogRoute(method: string, message: string) {
+  console.log(blue(bold(method)), "", message, "");
+}
+
+LogSuccess("@Server", `Listening on http://localhost:${PORT}/`);
+await app.listen({ port: +PORT });

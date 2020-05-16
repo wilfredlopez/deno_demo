@@ -12,4 +12,4 @@ deno run --allow-net src/index.ts
 
 > Run the oak server
 
-deno run --allow-read --allow-net src/oak.ts
+deno run --allow-read --allow-net --allow-env src/oak.ts
