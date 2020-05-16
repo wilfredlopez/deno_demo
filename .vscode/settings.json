@@ -1,0 +1,11 @@
+{
+  "deno.enable": true,
+  "deno.import_map": "%LOCALAPPDATA%/deno",
+  "deno.unstable": false,
+  "[typescript]": {
+    "editor.defaultFormatter": "axetroy.vscode-deno"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "axetroy.vscode-deno"
+  }
+}
